@@ -9,6 +9,7 @@ export interface ModuleOptions {
   rewriteRedirects: boolean
   fullPathRedirect: boolean
   scopeKey: string
+  loginIfNeeded: boolean
   redirect: {
     login: string
     logout: string
@@ -58,6 +59,8 @@ export const moduleDefaults: ModuleOptions = {
   fullPathRedirect: false,
 
   watchLoggedIn: true,
+
+  loginIfNeeded: false,
 
   redirect: {
     login: '/login',

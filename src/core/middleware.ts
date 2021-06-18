@@ -66,6 +66,9 @@ export const authMiddleware: Middleware = async (ctx) => {
     // (Those passing `callback` at runtime need to mark their callback component
     // with `auth: false` to avoid an unnecessary redirect from callback to login)
   } else if (!pageIsInGuestMode && (!callback || !insidePage(callback))) {
+    if (ctx.$auth.options.loginIfNeeded) {
+      return ctx.$auth.login()
+    }
     ctx.$auth.redirect('login')
   }
 }

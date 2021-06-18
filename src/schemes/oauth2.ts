@@ -299,7 +299,11 @@ export class Oauth2Scheme<
 
     const url = this.options.endpoints.authorization + '?' + encodeQuery(opts)
 
-    window.location.replace(url)
+    if (process.client) {
+      window.location.replace(url)
+    } else {
+      this.$auth.ctx.redirect(url)
+    }
   }
 
   logout(): void {
@@ -309,7 +313,11 @@ export class Oauth2Scheme<
         logout_uri: this.logoutRedirectURI
       }
       const url = this.options.endpoints.logout + '?' + encodeQuery(opts)
-      window.location.replace(url)
+      if (process.client) {
+        window.location.replace(url)
+      } else {
+        this.$auth.ctx.redirect(url)
+      }
     }
     return this.$auth.reset()
   }

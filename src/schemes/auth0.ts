@@ -10,6 +10,11 @@ export class Auth0Scheme extends Oauth2Scheme {
       returnTo: this.logoutRedirectURI
     }
     const url = this.options.endpoints.logout + '?' + encodeQuery(opts)
-    window.location.replace(url)
+
+    if (process.client) {
+      window.location.replace(url)
+    } else {
+      this.$auth.ctx.redirect(url)
+    }
   }
 }
