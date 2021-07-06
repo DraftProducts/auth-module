@@ -7,6 +7,7 @@ const Vue = require('vue');
 const cookie2 = require('cookie');
 const jwtDecode = require('jwt-decode');
 const defu2 = require('defu');
+const nodeCrypto = require('crypto');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -15,6 +16,7 @@ const Vue__default = /*#__PURE__*/_interopDefaultLegacy(Vue);
 const cookie2__default = /*#__PURE__*/_interopDefaultLegacy(cookie2);
 const jwtDecode__default = /*#__PURE__*/_interopDefaultLegacy(jwtDecode);
 const defu2__default = /*#__PURE__*/_interopDefaultLegacy(defu2);
+const nodeCrypto__default = /*#__PURE__*/_interopDefaultLegacy(nodeCrypto);
 
 const isUnset = (o) => typeof o === "undefined" || o === null;
 const isSet = (o) => !isUnset(o);
@@ -1249,7 +1251,7 @@ class Oauth2Scheme extends BaseScheme {
             const codeVerifier = this.generateRandomString();
             this.$auth.$storage.setUniversal(this.name + ".pkce_code_verifier", codeVerifier);
             const codeChallenge = await this.pkceChallengeFromVerifier(codeVerifier, opts.code_challenge_method === "S256");
-            opts.code_challenge = window.encodeURIComponent(codeChallenge);
+            opts.code_challenge = encodeURIComponent(codeChallenge);
           }
           break;
       }
@@ -1388,14 +1390,24 @@ class Oauth2Scheme extends BaseScheme {
   }
   async pkceChallengeFromVerifier(v, hashValue) {
     if (hashValue) {
-      const hashed = await this._sha256(v);
-      return this._base64UrlEncode(hashed);
+      if (process.client) {
+        const hashed = await this._sha256(v);
+        return this._base64UrlEncodeFromBuffer(hashed);
+      } else {
+        const hashed = nodeCrypto__default['default'].createHash("sha256").update(v).digest("base64");
+        return this._base64UrlEncodeFromString(hashed);
+      }
     }
     return v;
   }
   generateRandomString() {
     const array = new Uint32Array(28);
-    window.crypto.getRandomValues(array);
+    if (process.client) {
+      window.crypto.getRandomValues(array);
+    } else {
+      const bytes = nodeCrypto__default['default'].randomBytes(array.length);
+      array.set(bytes);
+    }
     return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
   }
   _sha256(plain) {
@@ -1403,7 +1415,10 @@ class Oauth2Scheme extends BaseScheme {
     const data = encoder.encode(plain);
     return window.crypto.subtle.digest("SHA-256", data);
   }
-  _base64UrlEncode(str) {
+  _base64UrlEncodeFromString(str) {
+    return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  _base64UrlEncodeFromBuffer(str) {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
 }

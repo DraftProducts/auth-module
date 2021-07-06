@@ -3,6 +3,7 @@ import Vue from 'vue';
 import cookie2 from 'cookie';
 import jwtDecode from 'jwt-decode';
 import defu2 from 'defu';
+import nodeCrypto from 'crypto';
 
 const isUnset = (o) => typeof o === "undefined" || o === null;
 const isSet = (o) => !isUnset(o);
@@ -1238,7 +1239,7 @@ class Oauth2Scheme extends BaseScheme {
             const codeVerifier = this.generateRandomString();
             this.$auth.$storage.setUniversal(this.name + ".pkce_code_verifier", codeVerifier);
             const codeChallenge = await this.pkceChallengeFromVerifier(codeVerifier, opts.code_challenge_method === "S256");
-            opts.code_challenge = window.encodeURIComponent(codeChallenge);
+            opts.code_challenge = encodeURIComponent(codeChallenge);
           }
           break;
       }
@@ -1377,14 +1378,24 @@ class Oauth2Scheme extends BaseScheme {
   }
   async pkceChallengeFromVerifier(v, hashValue) {
     if (hashValue) {
-      const hashed = await this._sha256(v);
-      return this._base64UrlEncode(hashed);
+      if (process.client) {
+        const hashed = await this._sha256(v);
+        return this._base64UrlEncodeFromBuffer(hashed);
+      } else {
+        const hashed = nodeCrypto.createHash("sha256").update(v).digest("base64");
+        return this._base64UrlEncodeFromString(hashed);
+      }
     }
     return v;
   }
   generateRandomString() {
     const array = new Uint32Array(28);
-    window.crypto.getRandomValues(array);
+    if (process.client) {
+      window.crypto.getRandomValues(array);
+    } else {
+      const bytes = nodeCrypto.randomBytes(array.length);
+      array.set(bytes);
+    }
     return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
   }
   _sha256(plain) {
@@ -1392,7 +1403,10 @@ class Oauth2Scheme extends BaseScheme {
     const data = encoder.encode(plain);
     return window.crypto.subtle.digest("SHA-256", data);
   }
-  _base64UrlEncode(str) {
+  _base64UrlEncodeFromString(str) {
+    return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  _base64UrlEncodeFromBuffer(str) {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
 }

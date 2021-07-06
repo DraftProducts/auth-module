@@ -259,7 +259,8 @@ export declare class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2S
     protected pkceChallengeFromVerifier(v: string, hashValue: boolean): Promise<string>;
     protected generateRandomString(): string;
     private _sha256;
-    private _base64UrlEncode;
+    private _base64UrlEncodeFromString;
+    private _base64UrlEncodeFromBuffer;
 }
 
 export declare interface Oauth2SchemeEndpoints extends EndpointsOption {

@@ -1,3 +1,4 @@
+import nodeCrypto from 'crypto'
 import requrl from 'requrl'
 import type {
   RefreshableScheme,
@@ -278,7 +279,7 @@ export class Oauth2Scheme<
               codeVerifier,
               opts.code_challenge_method === 'S256'
             )
-            opts.code_challenge = window.encodeURIComponent(codeChallenge)
+            opts.code_challenge = encodeURIComponent(codeChallenge)
           }
           break
         case 'implicit':
@@ -499,15 +500,28 @@ export class Oauth2Scheme<
     hashValue: boolean
   ): Promise<string> {
     if (hashValue) {
-      const hashed = await this._sha256(v)
-      return this._base64UrlEncode(hashed)
+      if (process.client) {
+        const hashed = await this._sha256(v)
+        return this._base64UrlEncodeFromBuffer(hashed)
+      } else {
+        const hashed = nodeCrypto
+          .createHash('sha256')
+          .update(v)
+          .digest('base64')
+        return this._base64UrlEncodeFromString(hashed)
+      }
     }
     return v // plain is plain - url-encoded by default
   }
 
   protected generateRandomString(): string {
     const array = new Uint32Array(28) // this is of minimum required length for servers with PKCE-enabled
-    window.crypto.getRandomValues(array)
+    if (process.client) {
+      window.crypto.getRandomValues(array)
+    } else {
+      const bytes = nodeCrypto.randomBytes(array.length)
+      array.set(bytes)
+    }
     return Array.from(array, (dec) => ('0' + dec.toString(16)).substr(-2)).join(
       ''
     )
@@ -519,7 +533,11 @@ export class Oauth2Scheme<
     return window.crypto.subtle.digest('SHA-256', data)
   }
 
-  private _base64UrlEncode(str: ArrayBuffer): string {
+  private _base64UrlEncodeFromString(str: String): string {
+    return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  }
+
+  private _base64UrlEncodeFromBuffer(str: ArrayBuffer): string {
     // Convert the ArrayBuffer to string using Uint8 array to convert to what btoa accepts.
     // btoa accepts chars only within ascii 0-255 and base64 encodes them.
     // Then convert the base64 encoded to base64url encoded
