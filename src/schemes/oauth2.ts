@@ -1,5 +1,5 @@
 import nodeCrypto from 'crypto'
-import { TextEncoder } from 'util'
+import Util from 'util'
 import requrl from 'requrl'
 import type {
   RefreshableScheme,
@@ -502,10 +502,12 @@ export class Oauth2Scheme<
   ): Promise<string> {
     if (hashValue) {
       if (process.client) {
-        const hashed = await this._sha256(v)
+        const encoder = new TextEncoder()
+        const data = encoder.encode(v)
+        const hashed = await window.crypto.subtle.digest('SHA-256', data)
         return this._base64UrlEncodeFromBuffer(hashed)
       } else {
-        const encoder = new TextEncoder()
+        const encoder = new Util.TextEncoder()
         const data = encoder.encode(v)
         const hashed = nodeCrypto
           .createHash('sha256')
@@ -514,7 +516,7 @@ export class Oauth2Scheme<
         return this._base64UrlEncodeFromString(hashed)
       }
     }
-    return v // plain is plain - url-encoded by default
+    return v
   }
 
   protected generateRandomString(): string {
@@ -530,21 +532,11 @@ export class Oauth2Scheme<
     )
   }
 
-  private _sha256(plain: string): Promise<ArrayBuffer> {
-    const encoder = new TextEncoder()
-    const data = encoder.encode(plain)
-    return window.crypto.subtle.digest('SHA-256', data)
-  }
-
   private _base64UrlEncodeFromString(str: String): string {
     return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
   }
 
   private _base64UrlEncodeFromBuffer(str: ArrayBuffer): string {
-    // Convert the ArrayBuffer to string using Uint8 array to convert to what btoa accepts.
-    // btoa accepts chars only within ascii 0-255 and base64 encodes them.
-    // Then convert the base64 encoded to base64url encoded
-    //   (replace + with -, replace / with _, trim trailing =)
     return btoa(String.fromCharCode.apply(null, new Uint8Array(str)))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')

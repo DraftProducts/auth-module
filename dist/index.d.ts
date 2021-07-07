@@ -258,7 +258,6 @@ export declare class Oauth2Scheme<OptionsT extends Oauth2SchemeOptions = Oauth2S
     protected updateTokens(response: HTTPResponse): void;
     protected pkceChallengeFromVerifier(v: string, hashValue: boolean): Promise<string>;
     protected generateRandomString(): string;
-    private _sha256;
     private _base64UrlEncodeFromString;
     private _base64UrlEncodeFromBuffer;
 }

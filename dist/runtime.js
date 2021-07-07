@@ -8,7 +8,7 @@ const cookie2 = require('cookie');
 const jwtDecode = require('jwt-decode');
 const defu2 = require('defu');
 const nodeCrypto = require('crypto');
-const util = require('util');
+const Util = require('util');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -18,6 +18,7 @@ const cookie2__default = /*#__PURE__*/_interopDefaultLegacy(cookie2);
 const jwtDecode__default = /*#__PURE__*/_interopDefaultLegacy(jwtDecode);
 const defu2__default = /*#__PURE__*/_interopDefaultLegacy(defu2);
 const nodeCrypto__default = /*#__PURE__*/_interopDefaultLegacy(nodeCrypto);
+const Util__default = /*#__PURE__*/_interopDefaultLegacy(Util);
 
 const isUnset = (o) => typeof o === "undefined" || o === null;
 const isSet = (o) => !isUnset(o);
@@ -1392,10 +1393,12 @@ class Oauth2Scheme extends BaseScheme {
   async pkceChallengeFromVerifier(v, hashValue) {
     if (hashValue) {
       if (process.client) {
-        const hashed = await this._sha256(v);
+        const encoder = new TextEncoder();
+        const data = encoder.encode(v);
+        const hashed = await window.crypto.subtle.digest("SHA-256", data);
         return this._base64UrlEncodeFromBuffer(hashed);
       } else {
-        const encoder = new util.TextEncoder();
+        const encoder = new Util__default['default'].TextEncoder();
         const data = encoder.encode(v);
         const hashed = nodeCrypto__default['default'].createHash("sha256").update(data).digest("base64");
         return this._base64UrlEncodeFromString(hashed);
@@ -1412,11 +1415,6 @@ class Oauth2Scheme extends BaseScheme {
       array.set(bytes);
     }
     return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
-  }
-  _sha256(plain) {
-    const encoder = new util.TextEncoder();
-    const data = encoder.encode(plain);
-    return window.crypto.subtle.digest("SHA-256", data);
   }
   _base64UrlEncodeFromString(str) {
     return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

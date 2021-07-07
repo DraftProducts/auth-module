@@ -4,7 +4,7 @@ import cookie2 from 'cookie';
 import jwtDecode from 'jwt-decode';
 import defu2 from 'defu';
 import nodeCrypto from 'crypto';
-import { TextEncoder } from 'util';
+import Util from 'util';
 
 const isUnset = (o) => typeof o === "undefined" || o === null;
 const isSet = (o) => !isUnset(o);
@@ -1380,10 +1380,12 @@ class Oauth2Scheme extends BaseScheme {
   async pkceChallengeFromVerifier(v, hashValue) {
     if (hashValue) {
       if (process.client) {
-        const hashed = await this._sha256(v);
+        const encoder = new TextEncoder();
+        const data = encoder.encode(v);
+        const hashed = await window.crypto.subtle.digest("SHA-256", data);
         return this._base64UrlEncodeFromBuffer(hashed);
       } else {
-        const encoder = new TextEncoder();
+        const encoder = new Util.TextEncoder();
         const data = encoder.encode(v);
         const hashed = nodeCrypto.createHash("sha256").update(data).digest("base64");
         return this._base64UrlEncodeFromString(hashed);
@@ -1400,11 +1402,6 @@ class Oauth2Scheme extends BaseScheme {
       array.set(bytes);
     }
     return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
-  }
-  _sha256(plain) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    return window.crypto.subtle.digest("SHA-256", data);
   }
   _base64UrlEncodeFromString(str) {
     return str.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
