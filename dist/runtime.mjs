@@ -1382,7 +1382,9 @@ class Oauth2Scheme extends BaseScheme {
         const hashed = await this._sha256(v);
         return this._base64UrlEncodeFromBuffer(hashed);
       } else {
-        const hashed = nodeCrypto.createHash("sha256").update(v).digest("base64");
+        const encoder = new TextEncoder();
+        const data = encoder.encode(v);
+        const hashed = nodeCrypto.createHash("sha256").update(data).digest("base64");
         return this._base64UrlEncodeFromString(hashed);
       }
     }

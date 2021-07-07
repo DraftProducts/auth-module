@@ -504,9 +504,11 @@ export class Oauth2Scheme<
         const hashed = await this._sha256(v)
         return this._base64UrlEncodeFromBuffer(hashed)
       } else {
+        const encoder = new TextEncoder()
+        const data = encoder.encode(v)
         const hashed = nodeCrypto
           .createHash('sha256')
-          .update(v)
+          .update(data)
           .digest('base64')
         return this._base64UrlEncodeFromString(hashed)
       }
