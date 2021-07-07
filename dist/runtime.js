@@ -8,6 +8,7 @@ const cookie2 = require('cookie');
 const jwtDecode = require('jwt-decode');
 const defu2 = require('defu');
 const nodeCrypto = require('crypto');
+const util = require('util');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -1394,7 +1395,7 @@ class Oauth2Scheme extends BaseScheme {
         const hashed = await this._sha256(v);
         return this._base64UrlEncodeFromBuffer(hashed);
       } else {
-        const encoder = new TextEncoder();
+        const encoder = new util.TextEncoder();
         const data = encoder.encode(v);
         const hashed = nodeCrypto__default['default'].createHash("sha256").update(data).digest("base64");
         return this._base64UrlEncodeFromString(hashed);
@@ -1413,7 +1414,7 @@ class Oauth2Scheme extends BaseScheme {
     return Array.from(array, (dec) => ("0" + dec.toString(16)).substr(-2)).join("");
   }
   _sha256(plain) {
-    const encoder = new TextEncoder();
+    const encoder = new util.TextEncoder();
     const data = encoder.encode(plain);
     return window.crypto.subtle.digest("SHA-256", data);
   }

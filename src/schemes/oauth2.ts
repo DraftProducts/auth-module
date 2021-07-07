@@ -1,4 +1,5 @@
 import nodeCrypto from 'crypto'
+import { TextEncoder } from 'util'
 import requrl from 'requrl'
 import type {
   RefreshableScheme,

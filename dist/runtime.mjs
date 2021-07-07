@@ -4,6 +4,7 @@ import cookie2 from 'cookie';
 import jwtDecode from 'jwt-decode';
 import defu2 from 'defu';
 import nodeCrypto from 'crypto';
+import { TextEncoder } from 'util';
 
 const isUnset = (o) => typeof o === "undefined" || o === null;
 const isSet = (o) => !isUnset(o);
