@@ -1,6 +1,6 @@
 {
   "name": "@draftbot/nuxtjs-auth",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "description": "Authentication module for Nuxt.js",
   "repository": "DraftProducts/auth-module",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "heroku-postbuild": "nuxt-ts build demo",
     "lint": "eslint --ext .ts,.js,.vue .",
     "lint-fix": "yarn lint --fix",
-    "release": "yarn build && standard-version && git push --follow-tags && npm publish",
+    "release": "yarn build && standard-version && git push --follow-tags && npm publish --access public",
     "start": "nuxt-ts start demo",
     "test": "yarn lint && jest"
   },
