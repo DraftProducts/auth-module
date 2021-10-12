@@ -1,6 +1,6 @@
 {
-  "name": "@nuxtjs/auth",
-  "version": "5.0.1-dev",
+  "name": "@draftbot/nuxtjs-auth",
+  "version": "5.1.0",
   "description": "Authentication module for Nuxt.js",
   "repository": "DraftProducts/auth-module",
   "license": "MIT",
